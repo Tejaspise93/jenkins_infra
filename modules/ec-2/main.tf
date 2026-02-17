@@ -34,50 +34,50 @@ resource "aws_instance" "jenkins_instance" {
 }
 
 
-# resource "aws_ebs_volume" "jenkins_home_volume" {
-#     availability_zone = aws_instance.jenkins_instance.availability_zone
-#     size = 10
-#     type = "gp3"
+resource "aws_ebs_volume" "jenkins_home_volume" {
+    availability_zone = aws_instance.jenkins_instance.availability_zone
+    size = 10
+    type = "gp3"
 
-#     tags = {
-#       Name = "${var.instance_name}-jenkins_home_volume"
-#     }
-# }
+    tags = {
+      Name = "${var.instance_name}-jenkins_home_volume"
+    }
+}
 
-# resource "aws_volume_attachment" "jenkins_home_attachment" {
-#     device_name = "/dev/xvdf"
-#     volume_id = aws_ebs_volume.jenkins_home_volume.id
-#     instance_id = aws_instance.jenkins_instance.id
-# }
+resource "aws_volume_attachment" "jenkins_home_attachment" {
+    device_name = "/dev/xvdf"
+    volume_id = aws_ebs_volume.jenkins_home_volume.id
+    instance_id = aws_instance.jenkins_instance.id
+}
 
 
-# resource "null_resource" "get_jenkins_password" {
+resource "null_resource" "get_jenkins_password" {
 
-#   triggers = {
-#     instance_id = aws_instance.jenkins_instance.id
-#   }
+  triggers = {
+    instance_id = aws_instance.jenkins_instance.id
+  }
 
-#   connection {
-#     type        = "ssh"
-#     host        = aws_instance.jenkins_instance.public_ip
-#     user        = var.ssh_user
-#     private_key = file(var.private_key_path)
-#     timeout     = "8m"
-#   }
+  connection {
+    type        = "ssh"
+    host        = aws_instance.jenkins_instance.public_ip
+    user        = var.ssh_user
+    private_key = file(var.private_key_path)
+    timeout     = "8m"
+  }
 
-#   provisioner "remote-exec" {
-#   inline = [
-#     "echo '>> Waiting for user_data to complete...'",
-#     "until [ -f /var/log/user-data.log ] && grep -q 'Setup complete' /var/log/user-data.log; do sleep 10; echo 'waiting for setup...'; done",
-#     "echo '>> Waiting for Jenkins password file...'",
-#     "until sudo test -f /var/lib/jenkins/secrets/initialAdminPassword; do sleep 10; echo 'waiting for Jenkins...'; done",
-#     "echo '================================================'",
-#     "echo '        JENKINS INITIAL ADMIN PASSWORD'",
-#     "echo '================================================'",
-#     "sudo cat /var/lib/jenkins/secrets/initialAdminPassword",
-#     "echo '================================================'",
-#   ]
-#   }
+  provisioner "remote-exec" {
+  inline = [
+    "echo '>> Waiting for user_data to complete...'",
+    "until [ -f /var/log/user-data.log ] && grep -q 'Setup complete' /var/log/user-data.log; do sleep 10; echo 'waiting for setup...'; done",
+    "echo '>> Waiting for Jenkins password file...'",
+    "until sudo test -f /var/lib/jenkins/secrets/initialAdminPassword; do sleep 10; echo 'waiting for Jenkins...'; done",
+    "echo '================================================'",
+    "echo '        JENKINS INITIAL ADMIN PASSWORD'",
+    "echo '================================================'",
+    "sudo cat /var/lib/jenkins/secrets/initialAdminPassword",
+    "echo '================================================'",
+  ]
+  }
 
-#   depends_on = [aws_volume_attachment.jenkins_home_attachment]
-# }
+  depends_on = [aws_volume_attachment.jenkins_home_attachment]
+}
