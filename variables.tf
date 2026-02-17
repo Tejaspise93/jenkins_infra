@@ -10,6 +10,20 @@ variable "jenkins_ports_to_allow" {
 
 variable "jenkins_sg_name" {
   description = "name of security group"
-  default = "jenkins-sg"
-  
+  default     = "jenkins-sg"
+}
+
+variable "public_key_path" {
+  description = "Path to your .pub public key file"
+  type        = string
+}
+
+variable "private_key_path" {
+  description = "Path to your .pem private key file"
+  type        = string
+}
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  default     = "t3.micro"
 }
