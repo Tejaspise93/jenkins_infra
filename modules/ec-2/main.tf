@@ -1,3 +1,4 @@
+# Fetch the latest Amazon Linux 2023 AMI
 data "aws_ami" "amazon_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
@@ -34,6 +35,7 @@ resource "aws_instance" "jenkins_instance" {
 }
 
 
+# Create an EBS volume for Jenkins home directory
 resource "aws_ebs_volume" "jenkins_home_volume" {
     availability_zone = aws_instance.jenkins_instance.availability_zone
     size = 10
@@ -44,6 +46,7 @@ resource "aws_ebs_volume" "jenkins_home_volume" {
     }
 }
 
+# Attach the EBS volume to the EC2 instance
 resource "aws_volume_attachment" "jenkins_home_attachment" {
     device_name = "/dev/xvdf"
     volume_id = aws_ebs_volume.jenkins_home_volume.id
@@ -51,6 +54,8 @@ resource "aws_volume_attachment" "jenkins_home_attachment" {
 }
 
 
+# This null_resource is used to fetch the Jenkins initial admin password after the instance is up and running. 
+# It waits for the user_data script to complete and then retrieves the password from the Jenkins secrets directory.
 resource "null_resource" "get_jenkins_password" {
 
   triggers = {

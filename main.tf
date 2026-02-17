@@ -3,6 +3,8 @@ data "aws_vpc" "default" {
   default = true
 }
 
+# Fetch available instance types in the region to ensure the specified instance type is valid 
+# problem faced in us-east-1e availability zone no t3.micro
 data "aws_ec2_instance_type_offerings" "available" {
   filter {
     name   = "instance-type"
@@ -12,6 +14,7 @@ data "aws_ec2_instance_type_offerings" "available" {
   location_type = "availability-zone"
 }
 
+# Fetch subnets in the default VPC
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -24,6 +27,9 @@ data "aws_subnets" "default" {
   }
 }
 
+# -------------------------------------------------
+# security group for jenkins server
+#--------------------------------------------------
 module "jenkins_sg" {
   source   = "./modules/security_groups"
   sg_ports = var.jenkins_ports_to_allow
@@ -31,11 +37,17 @@ module "jenkins_sg" {
   sg_name  = var.jenkins_sg_name
 }
 
+# -------------------------------------------------
+# key pair for jenkins server
+#--------------------------------------------------
 resource "aws_key_pair" "jenkins" {
   key_name   = "jenkins-practice-key"
   public_key = file(var.public_key_path)
 }
 
+# -------------------------------------------------
+# EC2 instance for jenkins server
+#--------------------------------------------------
 module "jenkins_server" {
   source = "./modules/ec-2"
 
