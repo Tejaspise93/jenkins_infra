@@ -1,6 +1,12 @@
 #!/bin/bash
 exec > /var/log/user-data.log 2>&1
 
+# Increase /tmp size to 2GB
+# This is necessary for Jenkins to run properly, as it uses /tmp for various operations
+# and it fails to start if /tmp is too small. 
+# The default size of /tmp on Amazon Linux 2 is 512MB, which is not sufficient for Jenkins.
+mount -o remount,size=2G /tmp
+
 sudo yum install -y java-21*
 
 # ── Wait for EBS volume ──────────────────────────────
