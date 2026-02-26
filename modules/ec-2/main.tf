@@ -24,8 +24,8 @@ resource "aws_instance" "jenkins_instance" {
   user_data = file("${path.module}/user_data.sh")
 
   root_block_device {
-    volume_size = 8
-    volume_type = "gp3"
+    volume_size           = 8
+    volume_type           = "gp3"
     delete_on_termination = true
   }
 
@@ -37,20 +37,20 @@ resource "aws_instance" "jenkins_instance" {
 
 # Create an EBS volume for Jenkins home directory
 resource "aws_ebs_volume" "jenkins_home_volume" {
-    availability_zone = aws_instance.jenkins_instance.availability_zone
-    size = 10
-    type = "gp3"
+  availability_zone = aws_instance.jenkins_instance.availability_zone
+  size              = 10
+  type              = "gp3"
 
-    tags = {
-      Name = "${var.instance_name}-jenkins_home_volume"
-    }
+  tags = {
+    Name = "${var.instance_name}-jenkins_home_volume"
+  }
 }
 
 # Attach the EBS volume to the EC2 instance
 resource "aws_volume_attachment" "jenkins_home_attachment" {
-    device_name = "/dev/xvdf"
-    volume_id = aws_ebs_volume.jenkins_home_volume.id
-    instance_id = aws_instance.jenkins_instance.id
+  device_name = "/dev/xvdf"
+  volume_id   = aws_ebs_volume.jenkins_home_volume.id
+  instance_id = aws_instance.jenkins_instance.id
 }
 
 
@@ -71,17 +71,17 @@ resource "null_resource" "get_jenkins_password" {
   }
 
   provisioner "remote-exec" {
-  inline = [
-    "echo '>> Waiting for user_data to complete...'",
-    "until [ -f /var/log/user-data.log ] && grep -q 'Setup complete' /var/log/user-data.log; do sleep 10; echo 'waiting for setup...'; done",
-    "echo '>> Waiting for Jenkins password file...'",
-    "until sudo test -f /var/lib/jenkins/secrets/initialAdminPassword; do sleep 10; echo 'waiting for Jenkins...'; done",
-    "echo '================================================'",
-    "echo '        JENKINS INITIAL ADMIN PASSWORD'",
-    "echo '================================================'",
-    "sudo cat /var/lib/jenkins/secrets/initialAdminPassword",
-    "echo '================================================'",
-  ]
+    inline = [
+      "echo '>> Waiting for user_data to complete...'",
+      "until [ -f /var/log/user-data.log ] && grep -q 'Setup complete' /var/log/user-data.log; do sleep 10; echo 'waiting for setup...'; done",
+      "echo '>> Waiting for Jenkins password file...'",
+      "until sudo test -f /var/lib/jenkins/secrets/initialAdminPassword; do sleep 10; echo 'waiting for Jenkins...'; done",
+      "echo '================================================'",
+      "echo '        JENKINS INITIAL ADMIN PASSWORD'",
+      "echo '================================================'",
+      "sudo cat /var/lib/jenkins/secrets/initialAdminPassword",
+      "echo '================================================'",
+    ]
   }
 
   depends_on = [aws_volume_attachment.jenkins_home_attachment]

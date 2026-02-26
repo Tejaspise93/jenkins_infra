@@ -5,7 +5,7 @@
 resource "aws_security_group" "jenkins_sg" {
   name        = "jenkins-sg"
   description = "Security group for Jenkins server"
-  vpc_id = var.vpc_id
+  vpc_id      = var.vpc_id
 
   dynamic "ingress" {
     for_each = var.sg_ports

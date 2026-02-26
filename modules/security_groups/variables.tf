@@ -1,5 +1,5 @@
 variable "vpc_id" {
-  type = string
+  type        = string
   description = "vpc id to create security group in"
 }
 
@@ -9,7 +9,7 @@ variable "sg_ports" {
 }
 
 variable "sg_name" {
-  type = string
+  type        = string
   description = "name of the security group"
-  
+
 }

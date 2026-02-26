@@ -25,7 +25,7 @@ variable "private_key_path" {
 }
 variable "security_group_id" {
   description = "security group to be used"
-  type = string
+  type        = string
 }
 
 variable "subnet_id" {
