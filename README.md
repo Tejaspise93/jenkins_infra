@@ -99,18 +99,6 @@ Open `jenkins_url` in your browser and use the printed password to complete Jenk
 
 ---
 
-## Daily Workflow
-
-```bash
-# Morning — spin up the server
-terraform apply
-
-# Evening — tear it down to avoid charges
-terraform destroy
-```
-
----
-
 ## Project Structure
 
 ```
@@ -130,96 +118,6 @@ your-project/
         ├── outputs.tf        # IP, URL, SSH command
         └── user_data.sh      # Bootstrap script — runs on first boot
 ```
-
----
-
-## How It Works Under the Hood
-
-### user_data.sh
-
-This script runs automatically when the instance boots for the first time:
-
-```
-Install Java 21 (required by Jenkins)
-      ↓
-Wait for EBS volume to appear at /dev/xvdf
-      ↓
-Format the volume as ext4
-      ↓
-Create the jenkins system user with home /var/lib/jenkins
-      ↓
-Mount the EBS volume on /var/lib/jenkins
-      ↓
-Persist the mount in /etc/fstab so it survives reboots
-      ↓
-Install Jenkins from the official stable repo
-      ↓
-Start Jenkins service
-```
-
-### Why a separate EBS volume?
-
-Keeping Jenkins data on a separate volume means:
-- The OS disk stays clean
-- Jenkins data can survive instance replacement
-- Volume can be resized independently of the OS disk
-
----
-
-## Changing Region
-
-The code works in any AWS region — no hardcoded IDs anywhere. Just update `terraform.tfvars`:
-
-```hcl
-aws_region = "ap-south-2"
-```
-
-Before switching regions, confirm the region has a default VPC:
-
-```bash
-aws ec2 describe-vpcs \
-  --region ap-south-2 \
-  --filters Name=isDefault,Values=true \
-  --query "Vpcs[*].VpcId" \
-  --output table
-```
-
-If no results come back, create a default VPC first:
-
-```bash
-aws ec2 create-default-vpc --region ap-south-2
-```
-
----
-
-## Debugging
-
-If something goes wrong, SSH into the instance and check the setup log:
-
-```bash
-ssh -i ~/.ssh/jenkins_key.pem ec2-user@<public-ip>
-sudo tail -f /var/log/user-data.log
-```
-
-Other useful commands on the server:
-
-```bash
-# Check if Jenkins is running
-sudo systemctl status jenkins
-
-# Check if EBS volume is mounted
-df -h | grep jenkins
-
-# Get the Jenkins password manually
-sudo cat /var/lib/jenkins/secrets/initialAdminPassword
-```
-
----
-
-
-```
-
-Your `.pem` file gives full SSH access to any server created with this code. Keep it local.
 
 ---
 
