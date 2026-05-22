@@ -12,6 +12,7 @@ sudo yum install -y java-21*
 
 # Install supporting tools
 sudo yum install -y git
+sudo yum install -y maven  
 
 # Install Docker
 sudo yum install -y docker
