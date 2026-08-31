@@ -8,22 +8,31 @@ exec > /var/log/user-data.log 2>&1
 mount -o remount,size=2G /tmp
 
 # Install Java
-sudo yum install -y java-21*
+yum install -y java-21*
 
 # Install supporting tools
-sudo yum install -y git
-sudo yum install -y maven  
+yum install -y git
+yum install -y maven  
 
 # Install Docker
-sudo yum install -y docker
-sudo systemctl start docker
-sudo systemctl enable docker
+yum install -y docker
+systemctl start docker
+systemctl enable docker
 
 # Install yq
 YQ_VERSION="v4.44.3"
-sudo wget -qO /usr/local/bin/yq \
+wget -qO /usr/local/bin/yq \
   "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
-sudo chmod +x /usr/local/bin/yq
+chmod +x /usr/local/bin/yq
+
+# Install Jenkins package FIRST (so system paths and user account are safely initialized)
+wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat-stable/jenkins.repo
+
+rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+yum install jenkins -y 
+
 
 # Wait for EBS volume
 echo ">> Waiting for device /dev/xvdf..."
@@ -40,7 +49,7 @@ else
   echo ">> Filesystem already exists, skipping format"
 fi
 
-# Mount volume on jenkins home
+# Mount volume on jenkins home directory (overrides package skeleton)
 mkdir -p /var/lib/jenkins
 mount /dev/xvdf /var/lib/jenkins
 
@@ -48,20 +57,13 @@ mount /dev/xvdf /var/lib/jenkins
 UUID=$(blkid -s UUID -o value /dev/xvdf)
 echo "UUID=$UUID  /var/lib/jenkins  ext4  defaults,nofail  0  2" >> /etc/fstab
 
-# Install Jenkins
-sudo wget -O /etc/yum.repos.d/jenkins.repo \
-    https://pkg.jenkins.io/redhat-stable/jenkins.repo
-
-sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
-
-sudo yum install jenkins -y 
-
-# chaing ownership and adding jenkins user to docker group so jenkins can run docker command
+# Change ownership and adding jenkins user to docker group so jenkins can run docker command
 chown -R jenkins:jenkins /var/lib/jenkins
-sudo usermod -aG docker jenkins
+usermod -aG docker jenkins
 
-sudo systemctl daemon-reload
-sudo systemctl start jenkins
-sudo systemctl enable jenkins
+# Refresh services and run Jenkins
+systemctl daemon-reload
+systemctl start jenkins
+systemctl enable jenkins
 
 echo "== Setup complete: $(date) =="

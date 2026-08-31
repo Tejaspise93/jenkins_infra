@@ -93,6 +93,10 @@ ssh_command = "ssh -i ~/.ssh/jenkins_key.pem ec2-user@1.2.3.4"
 ================================================
 YOUR_PASSWORD_HERE
 ================================================
+
+# use to switch to jenkins user if you want to ssh
+sudo -u jenkins -s /bin/bash
+
 ```
 
 Open `jenkins_url` in your browser and use the printed password to complete Jenkins setup.
